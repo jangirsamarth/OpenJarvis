@@ -1,7 +1,5 @@
-"""``jarvis voice`` — real-time voice-to-voice interaction."""
-
-from __future__ import annotations
-
+import io
+import json
 import logging
 import sys
 import time
@@ -25,6 +23,7 @@ logger = logging.getLogger(__name__)
 @click.option("--stt", "stt_backend", default=None, help="STT backend.")
 @click.option("--listen-threshold", "--energy", "listen_threshold", default=300.0, help="Energy threshold for VAD.")
 @click.option("--wake-word/--no-wake-word", "wake_word", default=True, help="Only active after 'Jarvis' wake-word.")
+@click.option("--headless", is_flag=True, default=False, help="Headless mode (emit JSON states to stdout).")
 def voice(
     engine_key: str | None,
     model_name: str | None,
@@ -34,13 +33,19 @@ def voice(
     stt_backend: str | None,
     listen_threshold: float,
     wake_word: bool,
+    headless: bool,
 ) -> None:
     """Start real-time voice-to-voice interaction.
 
     Jarvis listens for speech, transcribes it, generates a response,
     synthesizes speech, and plays it back.
     """
-    console = Console(stderr=True)
+    console = Console(stderr=True, force_terminal=not headless)
+    
+    def emit_state(state: str, **kwargs):
+        if headless:
+            print(json.dumps({"state": state, **kwargs}), flush=True)
+
     config = load_config()
 
     # Apply STT override if provided
@@ -126,14 +131,31 @@ def voice(
 
     is_active = not wake_word  # If no wake-word, we start active
 
+    # Initialize Session persistence
+    session_id = "voice_session"
+    prior_msgs = []
+    if system.session_store:
+        session = system.session_store.get_or_create(session_id, channel="voice", channel_user_id="user")
+        for sm in session.messages:
+            from openjarvis.core.types import Message, Role
+            try:
+                role = Role(sm.role)
+            except ValueError:
+                role = Role.USER
+            prior_msgs.append(Message(role=role, content=sm.content))
+        if prior_msgs:
+            console.print(f"[dim]Loaded {len(prior_msgs)} messages from history.[/dim]")
+
     with listener, speaker:
         while True:
             try:
                 # 1. Listen for audio
+                emit_state("listening")
                 audio_data = listener.listen()
                 if not audio_data:
                     continue
 
+                emit_state("transcribing")
                 console.print("[blue]... transcribing ...[/blue]", end="\r")
 
                 # 2. Transcribe
@@ -162,20 +184,33 @@ def voice(
                         continue
                 
                 if not text:
-                   continue
+                    continue
 
                 console.print(f"[bold]You:[/bold] {text}")
 
                 # 3. Ask Jarvis
+                emit_state("thinking", text=text)
                 console.print("[yellow]... thinking ...[/yellow]", end="\r")
-                result = system.ask(text)
+                
+                # Pass prior messages for persistence
+                result = system.ask(text, prior_messages=prior_msgs)
                 response_text = result.get("content", "")
                 if not response_text:
                     continue
 
                 console.print(f"[bold]Jarvis:[/bold] {response_text}")
 
-                # 4. Synthesize
+                # 4. Save to history
+                if system.session_store:
+                    from openjarvis.core.types import Message, Role
+                    system.session_store.save_message(session_id, "user", text, channel="voice")
+                    system.session_store.save_message(session_id, "assistant", response_text, channel="voice")
+                    # Update in-memory history for quick context in same session
+                    prior_msgs.append(Message(role=Role.USER, content=text))
+                    prior_msgs.append(Message(role=Role.ASSISTANT, content=response_text))
+
+                # 5. Synthesize
+                emit_state("speaking", text=response_text)
                 console.print("[magenta]... synthesizing ...[/magenta]", end="\r")
                 # Request WAV for speaker compatibility
                 tts_result = tts.synthesize(
@@ -184,7 +219,7 @@ def voice(
                     output_format="wav",
                 )
 
-                # 5. Play
+                # 6. Play
                 speaker.play(tts_result.audio)
                 console.print("[dim]Listening...[/dim]")
 

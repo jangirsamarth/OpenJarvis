@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface VoiceOrbProps {
-  state: 'idle' | 'listening' | 'thinking' | 'speaking';
+  state: 'idle' | 'listening' | 'transcribing' | 'thinking' | 'speaking';
 }
 
 export function VoiceOrb({ state }: VoiceOrbProps) {
@@ -12,7 +12,8 @@ export function VoiceOrb({ state }: VoiceOrbProps) {
         className={`absolute inset-0 rounded-full blur-3xl opacity-20 transition-colors duration-1000 ${
           state === 'listening' ? 'bg-blue-500' : 
           state === 'speaking' ? 'bg-indigo-500' :
-          state === 'thinking' ? 'bg-purple-500' : 'bg-gray-500'
+          state === 'thinking' ? 'bg-purple-500' : 
+          state === 'transcribing' ? 'bg-cyan-500' : 'bg-gray-500'
         }`}
       />
 
