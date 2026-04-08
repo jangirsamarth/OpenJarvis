@@ -794,9 +794,9 @@ class ToolsConfig:
 class AgentConfig:
     """Agent harness settings — orchestration, tools, system prompt."""
 
-    default_agent: str = "simple"
+    default_agent: str = "native_react"
     max_turns: int = 10
-    tools: str = ""  # comma-separated tool names
+    tools: str = "web_search,get_time,calculator"  # comma-separated tool names
     objective: str = ""  # concise purpose for routing/learning/docs
     system_prompt: str = ""  # inline system prompt (takes precedence if set)
     system_prompt_path: str = ""  # path to system prompt file (.txt, .md)

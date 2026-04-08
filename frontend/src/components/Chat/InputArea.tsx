@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Send, Square, Paperclip } from 'lucide-react';
+import { Send, Square, Paperclip, Headphones } from 'lucide-react';
+import { useNavigate } from 'react-router';
+
 import { useAppStore, generateId } from '../../lib/store';
 import { streamChat } from '../../lib/sse';
 import { fetchSavings, getBase } from '../../lib/api';
@@ -8,7 +10,9 @@ import { useSpeech } from '../../hooks/useSpeech';
 import type { ChatMessage, ToolCallInfo, TokenUsage, MessageTelemetry } from '../../types';
 
 export function InputArea() {
+  const navigate = useNavigate();
   const [input, setInput] = useState('');
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -345,7 +349,15 @@ export function InputArea() {
           </button>
         ) : (
           <div className="flex items-center gap-1">
+            <button
+              onClick={() => navigate('/voice')}
+              className="p-2 rounded-xl transition-colors shrink-0 cursor-pointer text-white/50 hover:text-white/80 hover:bg-white/5"
+              title="Enter Voice Mode"
+            >
+              <Headphones size={18} />
+            </button>
             <MicButton
+
               state={speechState}
               onClick={handleMicClick}
               disabled={micDisabled}
