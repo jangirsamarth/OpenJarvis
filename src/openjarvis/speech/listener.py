@@ -74,10 +74,17 @@ class VoiceListener:
         if status_callback:
             status_callback("Listening...")
 
+        # Clear any stale frames
         frames: list[bytes] = []
         silent_chunks = 0
         speaking = False
         pause_chunks = int(self.pause_threshold * self.sample_rate / self.chunk_size)
+        
+        # Flush the buffer of any noise from during the speaker's playback
+        # This helps ignore background noise that occurred while Jarvis was talking
+        for _ in range(2):
+           if self._stream.get_read_available() >= self.chunk_size:
+               self._stream.read(self.chunk_size, exception_on_overflow=False)
 
         while True:
             data = self._stream.read(self.chunk_size, exception_on_overflow=False)

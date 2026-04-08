@@ -22,7 +22,8 @@ logger = logging.getLogger(__name__)
 @click.option("--tts", "tts_backend", default=None, help="TTS backend.")
 @click.option("--voice", "voice_id", default=None, help="Voice ID.")
 @click.option("--stt", "stt_backend", default=None, help="STT backend.")
-@click.option("--listen-threshold", default=300.0, help="Energy threshold for VAD.")
+@click.option("--listen-threshold", "--energy", "listen_threshold", default=300.0, help="Energy threshold for VAD.")
+@click.option("--wake-word", is_flag=True, help="Only active after 'Jarvis' wake-word.")
 def voice(
     engine_key: str | None,
     model_name: str | None,
@@ -31,6 +32,7 @@ def voice(
     voice_id: str | None,
     stt_backend: str | None,
     listen_threshold: float,
+    wake_word: bool,
 ) -> None:
     """Start real-time voice-to-voice interaction.
 
@@ -118,6 +120,8 @@ def voice(
     listener = VoiceListener(energy_threshold=listen_threshold)
     speaker = VoiceSpeaker()
 
+    is_active = not wake_word  # If no wake-word, we start active
+
     with listener, speaker:
         while True:
             try:
@@ -133,6 +137,23 @@ def voice(
                 text = transcription.text.strip()
                 if not text:
                     continue
+
+                # Wake-Word logic
+                if wake_word:
+                    lower_text = text.lower()
+                    if "jarvis" in lower_text:
+                        # Activate or reset inactivity timer
+                        if not is_active:
+                            console.print("[yellow]System Activated.[/yellow]")
+                        is_active = True
+                        # Optional: strip "Jarvis" from the start for cleaner prompt
+                        text = text.replace("Jarvis", "").replace("jarvis", "").strip(",. ")
+                    elif not is_active:
+                        # Ignore silence/background noise if not addressed
+                        continue
+                
+                if not text:
+                   continue
 
                 console.print(f"[bold]You:[/bold] {text}")
 
