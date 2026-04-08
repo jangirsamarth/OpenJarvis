@@ -98,7 +98,12 @@ security-signing = ["cryptography>=43"]
 sandbox-wasm = ["wasmtime>=25"]
 sandbox-docker = ["docker>=7.0"]
 dashboard = ["textual>=0.80"]
-speech = ["faster-whisper>=1.0"]
+speech = [
+    "faster-whisper>=1.0",
+    "pyaudio>=0.2.14",
+    "numpy>=1.24",
+]
+speech-kokoro = ["kokoro>=0.3", "soundfile>=0.12"]
 speech-deepgram = ["deepgram-sdk>=3.0"]
 eval-wandb = ["wandb>=0.17"]
 eval-sheets = ["gspread>=6.0", "google-auth>=2.0"]

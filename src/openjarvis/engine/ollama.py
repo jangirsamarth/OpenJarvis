@@ -109,9 +109,23 @@ class OllamaEngine(InferenceEngine):
             ) from exc
         except httpx.HTTPStatusError as exc:
             body = exc.response.text[:500] if exc.response else ""
+            if exc.response is not None and exc.response.status_code == 404:
+                error_data = {}
+                try:
+                    error_data = exc.response.json()
+                except Exception:
+                    pass
+                
+                if "model" in error_data.get("error", "").lower():
+                    raise RuntimeError(
+                        f"Ollama model '{model}' not found locally.\n"
+                        f"Please run: ollama pull {model}"
+                    ) from exc
+            
             raise RuntimeError(
                 f"Ollama returned {exc.response.status_code}: {body}"
             ) from exc
+
         data = resp.json()
         # prompt_eval_count = tokens actually evaluated (KV-cache-aware).
         # estimate_prompt_tokens = full prompt size (for cost comparison).

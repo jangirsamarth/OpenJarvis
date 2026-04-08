@@ -82,7 +82,7 @@ uv run jarvis ask "What is the capital of France?"
 Install any preset with one command:
 
 ```bash
-jarvis init --preset morning-digest-mac   # or any preset below
+  # or any preset below
 ```
 
 | Preset | Use Case | What it does |

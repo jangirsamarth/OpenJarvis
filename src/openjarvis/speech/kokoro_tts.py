@@ -1,6 +1,6 @@
 """Kokoro TTS backend — fully open-source, runs locally.
 
-Requires the kokoro package: pip install kokoro
+Requires the kokoro package: uv sync --extra speech-kokoro
 Falls back gracefully if not installed.
 """
 
