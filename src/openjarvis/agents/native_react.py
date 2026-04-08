@@ -17,15 +17,20 @@ from openjarvis.engine._stubs import InferenceEngine
 from openjarvis.tools._stubs import BaseTool, build_tool_descriptions
 
 REACT_SYSTEM_PROMPT = """\
-You are a ReAct agent. For each step, respond with exactly one of:
+You are a ReAct agent. Your reasoning should be wrapped in <think> tags.
+For each step, respond with:
 
-1. To think and act:
+<think>
 Thought: <your reasoning>
 Action: <tool_name>
 Action Input: <json arguments>
+</think>
 
-2. To give a final answer:
+OR for final answer:
+
+<think>
 Thought: <your reasoning>
+</think>
 Final Answer: <your answer>
 
 {tool_descriptions}"""

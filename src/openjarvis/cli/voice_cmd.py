@@ -20,11 +20,11 @@ logger = logging.getLogger(__name__)
 @click.option("-e", "--engine", "engine_key", default=None, help="Engine backend.")
 @click.option("-m", "--model", "model_name", default=None, help="Model to use.")
 @click.option("-a", "--agent", "agent_name", default=None, help="Agent type.")
-@click.option("--tts", "tts_backend", default=None, help="TTS backend.")
+@click.option("--tts", "tts_backend", default="kokoro", help="TTS backend.")
 @click.option("--voice", "voice_id", default=None, help="Voice ID.")
 @click.option("--stt", "stt_backend", default=None, help="STT backend.")
 @click.option("--listen-threshold", "--energy", "listen_threshold", default=300.0, help="Energy threshold for VAD.")
-@click.option("--wake-word", is_flag=True, help="Only active after 'Jarvis' wake-word.")
+@click.option("--wake-word/--no-wake-word", "wake_word", default=True, help="Only active after 'Jarvis' wake-word.")
 def voice(
     engine_key: str | None,
     model_name: str | None,

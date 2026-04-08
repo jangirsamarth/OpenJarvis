@@ -12,8 +12,11 @@ import { XRayFooter } from './XRayFooter';
 import type { ChatMessage } from '../../types';
 
 function stripThinkTags(text: string): string {
-  let cleaned = text.replace(/<think>[\s\S]*?<\/think>\s*/gi, '');
-  cleaned = cleaned.replace(/^[\s\S]*?<\/think>\s*/i, '');
+  if (!text) return '';
+  // Remove all instances of <think>...</think> with any content inside
+  let cleaned = text.replace(/<think>[\s\S]*?<\/think>/gi, '');
+  // Also remove starting/trailing Thought: Action: Observation: prefixes if they aren't in tags
+  cleaned = cleaned.replace(/^(Thought|Action|Action Input|Observation):\s*/gmi, '');
   return cleaned.trim();
 }
 
