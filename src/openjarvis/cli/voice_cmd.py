@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import sys
+import time
 from typing import Optional
 
 import click
@@ -117,7 +118,10 @@ def voice(
 
     console.print("[dim]Listening... (Ctrl+C to stop)[/dim]")
 
-    listener = VoiceListener(energy_threshold=listen_threshold)
+    listener = VoiceListener(
+        energy_threshold=listen_threshold,
+        phrase_time_limit_seconds=10.0,
+    )
     speaker = VoiceSpeaker()
 
     is_active = not wake_word  # If no wake-word, we start active
@@ -133,8 +137,13 @@ def voice(
                 console.print("[blue]... transcribing ...[/blue]", end="\r")
 
                 # 2. Transcribe
+                start_time = time.perf_counter()
                 transcription = system.speech_backend.transcribe(audio_data)
+                end_time = time.perf_counter()
+                
                 text = transcription.text.strip()
+                duration = end_time - start_time
+                console.print(f"[blue]... transcribed in {duration:.1f}s ...[/blue]", end="\r")
                 if not text:
                     continue
 

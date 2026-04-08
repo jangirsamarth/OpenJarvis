@@ -86,6 +86,10 @@ class VoiceListener:
            if self._stream.get_read_available() >= self.chunk_size:
                self._stream.read(self.chunk_size, exception_on_overflow=False)
 
+        max_frames = None
+        if self.phrase_time_limit:
+            max_frames = int(self.phrase_time_limit * self.sample_rate / self.chunk_size)
+
         while True:
             data = self._stream.read(self.chunk_size, exception_on_overflow=False)
             audio_data = np.frombuffer(data, dtype=np.int16).astype(np.float64)
@@ -108,6 +112,12 @@ class VoiceListener:
                 frames.append(data)
                 if len(frames) > pause_chunks // 2:
                     frames.pop(0)
+            
+            # Check time limit
+            if max_frames and len(frames) > max_frames:
+                if status_callback:
+                    status_callback("Time limit reached.")
+                break
 
         if status_callback:
             status_callback("Processing...")

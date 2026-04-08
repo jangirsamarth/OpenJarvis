@@ -39,6 +39,10 @@ class FasterWhisperBackend(SpeechBackend):
                     "faster-whisper is not installed. "
                     "Install with: uv sync --extra speech"
                 )
+            
+            # Inform the user as models can be large
+            print(f"Loading Whisper model '{self._model_size}' ({self._compute_type}) on {self._device}...")
+            
             self._model = WhisperModel(
                 self._model_size,
                 device=self._device,
