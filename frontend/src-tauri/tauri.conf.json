@@ -60,9 +60,6 @@
       "endpoints": [
         "https://github.com/open-jarvis/OpenJarvis/releases/download/desktop-latest/latest.json"
       ]
-    },
-    "notification": {
-      "permissionState": "prompt"
     }
   }
 }
